@@ -17,10 +17,10 @@ Basically, if Data::FormValidator can use it as a form, so can we.
 
 =head1 Version
 
-Version 0.01
+Version 0.51
 
 =cut
-our $VERSION = '0.5';
+our $VERSION = '0.51';
 
 =head1 Synopsis
 
