@@ -1,0 +1,9 @@
+{
+          'build_requires' => {},
+          'conflicts' => {},
+          'requires' => {
+                          'Test::More' => 0,
+                          'Data::FormValidator' => 0
+                        },
+          'recommends' => {}
+        }

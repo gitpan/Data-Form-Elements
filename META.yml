@@ -1,0 +1,8 @@
+--- #YAML:1.0
+name: Data-Form-Elements
+version: 0.5
+author:
+  - jason gessner <jason@multiply.org>
+abstract: 
+license: perl
+generated_by: Module::Build version 0.25, without YAML.pm
