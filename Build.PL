@@ -12,6 +12,9 @@ my $builder = Module::Build->new(
         'Data::FormValidator' => 0
     },
     add_to_cleanup      => [ 'Data-Form-Elements-*' ],
+    create_makefile_pl  => 'passthrough'
 );
 
 $builder->create_build_script();
+$builder->create_makefile_pl( 'passthrough' );
+

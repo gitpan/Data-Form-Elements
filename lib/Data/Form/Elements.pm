@@ -3,6 +3,8 @@ package Data::Form::Elements;
 use strict;
 use warnings;
 
+use Carp;
+
 # we are wrapping Data::FormValidator to do our heavy lifting.  
 # I am just trying to use as little code as possible to set a form
 # up.
@@ -17,10 +19,10 @@ Basically, if Data::FormValidator can use it as a form, so can we.
 
 =head1 Version
 
-Version 0.51
+Version 0.60
 
 =cut
-our $VERSION = '0.51';
+our $VERSION = '0.60';
 
 =head1 Synopsis
 
@@ -43,7 +45,7 @@ A quick example of using this module for a login form:
     if ( $form->is_valid() ) {
         # continue logging on ...
     }
-
+    
 =head1 Functions
 
 =head2 new()
@@ -132,12 +134,16 @@ sub add_element {
     
 }
 
-=head2 params()
+=head2 _params()
 
-Returns a list of the elements in this form.
+Deprecated for external use. Returns a list of the elements in this form.
+
+This was changed to be an "internal" method at the behest of David Baird for
+compatibility with Apache::Request and CGI.  If you really need to get the
+list of form elements, call $form->param().
 
 =cut
-sub params {
+sub _params {
     my ( $self ) = @_;
 
     my @params;
@@ -179,20 +185,54 @@ sub dump_validator {
 
 =head2 validate()
 
-Takes a hash of values for the form elements and validates them against the
-rules you have set up.
+Takes a hash of values, a CGI object or an Apache::Request object for the form elements 
+and validates them against the rules you have set up.  Support for CGI and
+Apache::Request objects sent in by David Baird L<http://www.riverside-cms.co.uk/>.
 
-Example:
-    $form->validate( %ARGS );
+Hash Ref Example:
+    $form->validate( \%ARGS );
     if ( $form->is_valid() ) {
         # continue processing form...
     }
 
+CGI object Example
+
+    $form->validate( \$query );
+    if ( $form->is_valid() ) {
+        # continue processing form...
+    }
+    
+Apache::Request Example
+
+    $form->validate( \$r );
+    if ( $form->is_valid() ) {
+        # continue processing form...
+    }
+    
 =cut
 sub validate {
-    # pass $raw_form as a ref
-    # TODO: enforce this, and add a carp.  :)
-    my ( $self, %raw_form ) = @_;
+    my ( $self, $form ) = @_;
+    
+    # $form can be a hashref, or an object with a param method that
+    # operates like in CGI or Apache::Request
+    
+    croak 'Form is not a reference' unless ref( $form );
+    
+    my %raw_form;
+    
+    if ( ref( $form ) eq 'HASH' ) {
+        %raw_form = %$form;
+    }
+    elsif ( $form->can( 'param' ) ) {
+        # for CGI or Apache::Request objects, calling 
+        # $form->param() in list context returns a list of keys.
+        # Calling $form->param( $key ) returns the value for that
+        #  form field. 
+        %raw_form = map { $_ => $form->param( $_ ) } $form->param;
+    } else {
+        croak sprintf '%s form does not have a param method', 
+                  ref( $form );
+    }
 
     # pull in our elements
     my %elements = %{$self->{elements}};
@@ -312,16 +352,11 @@ Example:
     # setter
     $form->param("username", "jason");
     
-TODO:  make accessors like Class::DBI so you will be able to do 
-    $form->username();
-or
-    $form->username("jason");
-
 =cut
 sub param {
     my ($self, $element, $value) = @_;
 
-    return unless defined($element);
+    return $self->_params unless defined($element);
 
     unless ( defined( $value ) ) {
 	# just return the value
@@ -345,9 +380,42 @@ sub message {
     return $self->{elements}{$element}{message};
 }
 
+
+=head1 Field Name Accessor Methods
+
+Thanks to Dr. David R. Baird, we now also have basic accessor methods for form
+elements.  For example, now you can use either of the following lines to get a
+value.
+
+    # normal, function based method.
+    print $form->param("username"), "<br />\n";
+    # accessor method
+    print $form->username, "<br />\n";
+    
+Thanks a ton, David!
+
+=cut
+
+use vars '$AUTOLOAD';
+
+sub AUTOLOAD {
+    my ($self, $new_value) = @_;
+
+    # get everything after the last ':'
+    $AUTOLOAD =~ /([^:]+)$/ || 
+        croak "Can't extract key from $AUTOLOAD";
+    
+    my $key = $1;
+    
+    return $self->param( $key, $new_value );
+}
+
+# this is required for AUTOLOAD
+sub DESTROY {}
+
 =head1 Author
 
-jason gessner, C<< <jason@multiply.o> >>
+jason gessner, C<< <jason@multiply.org> >>
 
 =head1 Bugs
 
