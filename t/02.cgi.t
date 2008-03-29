@@ -30,7 +30,7 @@ my $bogus_var = "not a form.";
 dies_ok { $bad_form->validate( $bogus_var ) } "Will not validate a scalar.";
 dies_ok { $bad_form->validate( %BAD_FORM ) } "Will not validate a normal hash.";
 
-ok ($bad_form->validate( \%BAD_FORM ), "Validate hash" );
+lives_ok { $bad_form->validate( \%BAD_FORM ) } "Validate hash" ;
 
 ok ( !$bad_form->is_valid(), "ARGS as given should not validate." );
 
@@ -49,8 +49,7 @@ is ( $bad_form->sort_position, 'a', "Param: Sort Position stored (accessor).");
 is ( $bad_form->message("sort_position"), 'The sort position must be a positive integer only.', "Proper constraint error message for sort_position." );
 
 is ( $bad_form->param("email"), 'jasonmultiply.org', "Param: Email stored.");
-is ( $bad_form->email, "jasonmultiply.org", "Param: Email stored
-(accessor).");
+is ( $bad_form->email, "jasonmultiply.org", "Param: Email stored (accessor).");
 is ( $bad_form->message("email"), 'Please provide a valid email address, like username@server.com.', "Proper constraint error message for email." );
 
 
@@ -92,6 +91,5 @@ is ( $good_form->sort_position, '5', "Param: Sort Position stored (accessor).");
 is ( $good_form->message("sort_position"), '', "Proper constraint error message for sort_position." );
 
 is ( $good_form->param("email"), 'jason@multiply.org', "Param: Email stored.");
-is ( $good_form->email, 'jason@multiply.org', "Param: Email stored
-(accessor).");
+is ( $good_form->email, 'jason@multiply.org', "Param: Email stored (accessor).");
 is ( $good_form->message("email"), '', "Proper constraint error message for email." );

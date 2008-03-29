@@ -22,7 +22,7 @@ Basically, if Data::FormValidator can use it as a form, so can we.
 Version 0.60
 
 =cut
-our $VERSION = '0.60';
+our $VERSION = '0.61';
 
 =head1 Synopsis
 
